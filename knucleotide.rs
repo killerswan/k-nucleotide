@@ -1,12 +1,23 @@
-
 import io::reader_util;
+
+use std;
+import std::map;
+import std::map::hashmap;
 
 fn main () {
    // define leftovers
    // define maps
 
+   let m: hashmap<str, uint> = map::hash_from_strs([]);
+   
+
    let update_kmer_freqs = fn@(line: str) {
       // update the frequency maps
+
+      alt m.find("one") {
+         option::none      { m.insert("one", 1u      ); }
+         option::some(val) { m.insert("one", 1u + val); }
+      }
       io::println("GEARS SPINNING...");
    };
 
@@ -29,7 +40,7 @@ fn main () {
 
          // break our processing
          ('>' as u8, true) {
-            ret;
+            break;
          }
 
          // process the sequence for k-mers
@@ -41,6 +52,8 @@ fn main () {
          _ { }
       }
    }
+
+   io::println(#fmt["one: %u", m.get("one")]);
 }
 
 
