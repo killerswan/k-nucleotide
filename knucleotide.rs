@@ -9,19 +9,38 @@ fn main () {
       ret map::hash_from_strs([]);
    }
 
-   // define maps
-   let m = make_map();
+   let frequencies =
+      // k-mer size, frequency map, leftover string
+      [( 1, make_map(), ""),
+       ( 2, make_map(), ""),
+       ( 3, make_map(), ""),
+       ( 4, make_map(), ""),
+       ( 6, make_map(), ""),
+       (12, make_map(), ""),
+       (18, make_map(), "")];
+
+   let freqs = vec::len(frequencies);
    
-   // define leftovers
-
    // update the frequency maps
-   let update_kmer_freqs = fn@(line: str) {
+   let update_freq = fn@(mm: hashmap<str, uint>, key: str) {
 
-      alt m.find("one") {
-         option::none      { m.insert("one", 1u      ); }
-         option::some(val) { m.insert("one", 1u + val); }
+      alt mm.find(key) {
+         option::none      { mm.insert(key, 1u      ); }
+         option::some(val) { mm.insert(key, 1u + val); }
       }
+   };
+
+
+   // FIXME: wtf?
+   let update_frequencies = fn@(line: str) {
       io::println("GEARS SPINNING...");
+      /*
+      let len = vec::len(frequencies);
+      for frequencies.each {|freq|
+         let (sz, mm, carry) = freq;
+         update_freq(mm, "one");
+      }
+      */
    };
 
    let mut proc_mode = false;
@@ -48,7 +67,7 @@ fn main () {
 
          // process the sequence for k-mers
          (_, true) {
-               update_kmer_freqs(line);
+               update_frequencies(line);
          }
 
          // whatever
@@ -56,6 +75,9 @@ fn main () {
       }
    }
 
+   //io::println(#fmt["one: %u", frequencies.get("one")]);
+   
+   let (_, m, _) = frequencies[0];
    io::println(#fmt["one: %u", m.get("one")]);
 }
 
