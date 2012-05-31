@@ -3,4 +3,4 @@ curl -O http://shootout.alioth.debian.org/download/knucleotide-input.txt
 curl -O http://shootout.alioth.debian.org/download/knucleotide-output.txt
 
 # To run the test without optimization:
-time diff -u <(rustx k-nucleotide.rs knucleotide-input.txt) knucleotide-output.txt
+time diff -u <(rustx knucleotide.rs < knucleotide-input.txt) knucleotide-output.txt
