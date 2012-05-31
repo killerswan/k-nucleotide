@@ -5,14 +5,17 @@ import std::map;
 import std::map::hashmap;
 
 fn main () {
-   // define leftovers
+   fn make_map() -> hashmap<str, uint> {
+      ret map::hash_from_strs([]);
+   }
+
    // define maps
-
-   let m: hashmap<str, uint> = map::hash_from_strs([]);
+   let m = make_map();
    
+   // define leftovers
 
+   // update the frequency maps
    let update_kmer_freqs = fn@(line: str) {
-      // update the frequency maps
 
       alt m.find("one") {
          option::none      { m.insert("one", 1u      ); }
