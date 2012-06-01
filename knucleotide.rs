@@ -12,40 +12,35 @@ fn main () {
 
    let freqs1 = make_map();
    let freqs2 = make_map();
-/*
    let freqs3 = make_map();
    let freqs4 = make_map();
    let freqs6 = make_map();
    let freqs12 = make_map();
    let freqs18 = make_map();
-*/
 
    let mut carry1 = "";
    let mut carry2 = "";
-/*
    let mut carry3 = "";
    let mut carry4 = "";
    let mut carry6 = "";
    let mut carry12 = "";
    let mut carry18 = "";
-*/
 
    let mut tot1 = 0u;
    let mut tot2 = 0u;
-/*
    let mut tot3 = 0u;
    let mut tot4 = 0u;
    let mut tot6 = 0u;
    let mut tot12 = 0u;
    let mut tot18 = 0u;
-*/
 
    // increment one counter
    let update_freq = fn@(mm: hashmap<str, uint>, key: str) {
+      let KEY = key.to_upper();
 
-      alt mm.find(key) {
-         option::none      { mm.insert(key, 1u      ); }
-         option::some(val) { mm.insert(key, 1u + val); }
+      alt mm.find(KEY) {
+         option::none      { mm.insert(KEY, 1u      ); }
+         option::some(val) { mm.insert(KEY, 1u + val); }
       }
    };
 
@@ -59,11 +54,9 @@ fn main () {
       while ii < len - (nn - 1u) {
          it(ss.slice(ii, ii+nn));
          ii += 1u;
-         io::println("+");
       }
 
       let carry = ss.slice(len - (nn - 1u), len); 
-      io::println("{" + carry + "}");
       ret carry;
    }
 
@@ -93,6 +86,11 @@ fn main () {
          (_, true) {
                carry1 = windowsWithCarry(carry1 + line, 1u, {|window| tot1 += 1u; update_freq(freqs1, window); });
                carry2 = windowsWithCarry(carry2 + line, 2u, {|window| tot2 += 1u; update_freq(freqs2, window); });
+               carry3 = windowsWithCarry(carry3 + line, 3u, {|window| tot3 += 1u; update_freq(freqs3, window); });
+               carry4 = windowsWithCarry(carry4 + line, 4u, {|window| tot4 += 1u; update_freq(freqs4, window); });
+               carry6 = windowsWithCarry(carry6 + line, 6u, {|window| tot6 += 1u; update_freq(freqs6, window); });
+               carry12 = windowsWithCarry(carry12 + line, 12u, {|window| tot12 += 1u; update_freq(freqs12, window); });
+               carry18 = windowsWithCarry(carry18 + line, 18u, {|window| tot18 += 1u; update_freq(freqs18, window); });
          }
 
          // whatever
@@ -100,37 +98,46 @@ fn main () {
       }
    }
 
-   fn le_by_val<TT,UU>(kv0: (TT,UU), kv1: (TT,UU)) -> bool {
+   fn le_by_val<TT: copy, UU: copy>(kv0: (TT,UU), kv1: (TT,UU)) -> bool {
       let (_, v0) = kv0;
       let (_, v1) = kv1;
       ret v0 >= v1;
    }
 
-   fn le_by_key<TT,UU>(kv0: (TT,UU), kv1: (TT,UU)) -> bool {
+   fn le_by_key<TT: copy, UU: copy>(kv0: (TT,UU), kv1: (TT,UU)) -> bool {
       let (k0, _) = kv0;
       let (k1, _) = kv1;
       ret k0 <= k1;
    }
 
-   fn sortKV<TT,UU>(orig: [(TT,UU)]) -> [(TT,UU)] {
+   fn sortKV<TT: copy, UU: copy>(orig: [(TT,UU)]) -> [(TT,UU)] {
       ret sort::merge_sort(le_by_val, sort::merge_sort(le_by_key, orig));
    }
 
    let mut kv1 = [];
    let mut kv2 = [];
 
-   fn fdiv(xx: uint, yy: uint) -> float {
-      ret (xx as float) / (yy as float);
+   fn pct(xx: uint, yy: uint) -> float {
+      ret (xx as float) * 100f / (yy as float);
    }
-   freqs1.each(fn&(key: str, val: uint) -> bool { kv1 += [(key, fdiv(val, tot1))]; ret true });
-   freqs2.each(fn&(key: str, val: uint) -> bool { kv2 += [(key, fdiv(val, tot2))]; ret true });
+   freqs1.each(fn&(key: str, val: uint) -> bool { kv1 += [(key, pct(val, tot1))]; ret true });
+   freqs2.each(fn&(key: str, val: uint) -> bool { kv2 += [(key, pct(val, tot2))]; ret true });
 
    let kv1_sorted = sortKV(kv1);
    let kv2_sorted = sortKV(kv2);
 
-   kv1_sorted.each(fn@(kv: (str, float)) -> bool { let (k,v) = kv; io::println(#fmt["%s %f", k, v]); ret true});
-   kv2_sorted.each(fn@(kv: (str, float)) -> bool { let (k,v) = kv; io::println(#fmt["%s %f", k, v]); ret true});
+   kv1_sorted.each(fn@(kv: (str, float)) -> bool { let (k,v) = kv; io::println(#fmt["%s %0.3f", k, v]); ret true});
+   io::println("");
+   kv2_sorted.each(fn@(kv: (str, float)) -> bool { let (k,v) = kv; io::println(#fmt["%s %0.3f", k, v]); ret true});
+   io::println("");
+   io::println(#fmt["%u\t%s", freqs3.get("GGT"), "GGT"]);
+   io::println(#fmt["%u\t%s", freqs4.get("GGTA"), "GGTA"]);
+   io::println(#fmt["%u\t%s", freqs6.get("GGTATT"), "GGTATT"]);
+   io::println(#fmt["%u\t%s", freqs12.get("GGTATTTTAATT"), "GGTATTTTAATT"]);
+   io::println(#fmt["%u\t%s", freqs18.get("GGTATTTTAATTTATAGT"), "GGTATTTTAATTTATAGT"]);
       
+   //io::println("\nTESTING:");
+   //io::println(float::to_str(3.14159, 4u));
 }
 
 
