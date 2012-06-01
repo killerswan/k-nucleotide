@@ -160,10 +160,7 @@ fn my_to_str_common(num: float, digits: uint, exact: bool) -> str {
     let trunc = num as uint;
     let mut frac = num - (trunc as float);
     accum += uint::str(trunc);
-
     if (frac < epsilon && !exact) || digits == 0u { ret accum; }
-    // FIXME: possibly backtrack?
-
     accum += ".";
     let mut i = digits;
     let mut epsilon_prime = 1. / pow_with_uint(10u, i);
@@ -172,17 +169,18 @@ fn my_to_str_common(num: float, digits: uint, exact: bool) -> str {
         epsilon_prime *= 10.0;
         let digit = frac as uint;
         frac -= digit as float;
+
+        // gracefully round when 'exact'
         if i == 1u && (frac * 10.0) as uint >= 5u {
             accum += uint::str(digit + 1u);
         } else {
             accum += uint::str(digit);
         }
+
         i -= 1u;
     }
 
     ret accum;
-    // FIXME: possibly backtrack?
-
 }
 
 // originally from float.rs
