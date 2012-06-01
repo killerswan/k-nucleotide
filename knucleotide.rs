@@ -130,9 +130,10 @@ fn main () {
    let kv1_sorted = sortKV(kv1);
    let kv2_sorted = sortKV(kv2);
 
-   kv1_sorted.each(fn@(kv: (str, float)) -> bool { let (k,v) = kv; io::println(#fmt["%s %0.3f", k, v]); ret true});
+   kv1_sorted.each(fn@(kv: (str, float)) -> bool { let (k,v) = kv; io::println(#fmt["%s %s", k, my_to_str_exact(v, 3u)]); ret true});
    io::println("");
-   kv2_sorted.each(fn@(kv: (str, float)) -> bool { let (k,v) = kv; io::println(#fmt["%s %0.3f", k, v]); ret true});
+   //kv2_sorted.each(fn@(kv: (str, float)) -> bool { let (k,v) = kv; io::println(#fmt["%s %0.3f", k, v]); ret true});
+   kv2_sorted.each(fn@(kv: (str, float)) -> bool { let (k,v) = kv; io::println(#fmt["%s %s", k, my_to_str_exact(v, 3u)]); ret true});
    io::println("");
    io::println(#fmt["%u\t%s", freqs3.get("GGT"), "GGT"]);
    io::println(#fmt["%u\t%s", freqs4.get("GGTA"), "GGTA"]);
@@ -149,7 +150,7 @@ const epsilon: f64 = 2.2204460492503131e-16_f64;
 
 // originally from float.rs
 // 
-fn to_str_common(num: float, digits: uint, exact: bool) -> str {
+fn my_to_str_common(num: float, digits: uint, exact: bool) -> str {
    import float::*;
 
     if is_NaN(num) { ret "NaN"; }
@@ -170,8 +171,12 @@ fn to_str_common(num: float, digits: uint, exact: bool) -> str {
         frac *= 10.0;
         epsilon_prime *= 10.0;
         let digit = frac as uint;
-        accum += uint::str(digit);
         frac -= digit as float;
+        if i == 1u && (frac * 10.0) as uint >= 5u {
+            accum += uint::str(digit + 1u);
+        } else {
+            accum += uint::str(digit);
+        }
         i -= 1u;
     }
 
@@ -181,13 +186,14 @@ fn to_str_common(num: float, digits: uint, exact: bool) -> str {
 }
 
 // originally from float.rs
-fn to_str_exact(num: float, digits: uint) -> str {
-    to_str_common(num, digits, true)
+fn my_to_str_exact(num: float, digits: uint) -> str {
+    my_to_str_common(num, digits, true)
 }
 
 #[test]
 fn rounding() {
    io::println(float::to_str(3.14159, 4u));
+   io::println(my_to_str_exact(3.14159, 4u));
 }
 
 
