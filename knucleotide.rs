@@ -140,8 +140,54 @@ fn main () {
    io::println(#fmt["%u\t%s", freqs12.get("GGTATTTTAATT"), "GGTATTTTAATT"]);
    io::println(#fmt["%u\t%s", freqs18.get("GGTATTTTAATTTATAGT"), "GGTATTTTAATTTATAGT"]);
       
-   //io::println("\nTESTING:");
-   //io::println(float::to_str(3.14159, 4u));
+}
+
+
+
+// originally from f64.rs
+const epsilon: f64 = 2.2204460492503131e-16_f64;
+
+// originally from float.rs
+// 
+fn to_str_common(num: float, digits: uint, exact: bool) -> str {
+   import float::*;
+
+    if is_NaN(num) { ret "NaN"; }
+    if num == infinity { ret "inf"; }
+    if num == neg_infinity { ret "-inf"; }
+    let mut (num, accum) = if num < 0.0 { (-num, "-") } else { (num, "") };
+    let trunc = num as uint;
+    let mut frac = num - (trunc as float);
+    accum += uint::str(trunc);
+
+    if (frac < epsilon && !exact) || digits == 0u { ret accum; }
+    // FIXME: possibly backtrack?
+
+    accum += ".";
+    let mut i = digits;
+    let mut epsilon_prime = 1. / pow_with_uint(10u, i);
+    while i > 0u && (frac >= epsilon_prime || exact) {
+        frac *= 10.0;
+        epsilon_prime *= 10.0;
+        let digit = frac as uint;
+        accum += uint::str(digit);
+        frac -= digit as float;
+        i -= 1u;
+    }
+
+    ret accum;
+    // FIXME: possibly backtrack?
+
+}
+
+// originally from float.rs
+fn to_str_exact(num: float, digits: uint) -> str {
+    to_str_common(num, digits, true)
+}
+
+#[test]
+fn rounding() {
+   io::println(float::to_str(3.14159, 4u));
 }
 
 
