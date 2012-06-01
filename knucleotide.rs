@@ -1,3 +1,5 @@
+// single tasking k-nucleotide
+
 import io::reader_util;
 
 use std;
@@ -10,6 +12,7 @@ fn main () {
       ret map::hash_from_strs([]);
    }
 
+   // FIXME: combine these
    let freqs1 = make_map();
    let freqs2 = make_map();
    let freqs3 = make_map();
@@ -84,6 +87,7 @@ fn main () {
 
          // process the sequence for k-mers
          (_, true) {
+               // FIXME: combine these
                carry1 = windowsWithCarry(carry1 + line, 1u, {|window| tot1 += 1u; update_freq(freqs1, window); });
                carry2 = windowsWithCarry(carry2 + line, 2u, {|window| tot2 += 1u; update_freq(freqs2, window); });
                carry3 = windowsWithCarry(carry3 + line, 3u, {|window| tot3 += 1u; update_freq(freqs3, window); });
