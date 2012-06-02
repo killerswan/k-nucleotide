@@ -57,11 +57,11 @@ fn main () unsafe {
 
       let len = vec::len(bb);
       while ii < len - (nn - 1u) {
-         it(vec::slice(bb, ii, ii+nn));
+         it(vec::view(&bb, ii, ii+nn));
          ii += 1u;
       }
 
-      let carry = vec::slice(bb, len - (nn - 1u), len); 
+      let carry = vec::view(&bb, len - (nn - 1u), len); 
       ret carry;
    }
 
