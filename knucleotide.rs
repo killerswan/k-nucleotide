@@ -34,7 +34,7 @@ fn main () {
 
       let len = vec::len(bb);
       while ii < len - (nn - 1u) {
-         it(vec::view(&bb, ii, ii+nn));
+         it(vec::slice(bb, ii, ii+nn));
          ii += 1u;
       }
 
