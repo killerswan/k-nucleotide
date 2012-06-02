@@ -7,7 +7,7 @@ import std::map;
 import std::map::hashmap;
 import std::sort;
 
-fn main () unsafe {
+fn main () {
    fn map() -> hashmap<[u8], uint> {
       ret map::bytes_hash();
    }
@@ -66,10 +66,10 @@ fn main () unsafe {
          (_, true) {
             let line_b = str::bytes(line);
 
-            // FIXME: combine these
-            for sizes.eachi {|ii, sz|
-               carry[ii] = windowsWithCarry(carry[ii] + line_b, sz,
-                              {|window| tot[ii] += 1u; update_freq(freqs[ii], window);});
+            for sizes.eachi { |ii, sz|
+               carry[ii] = windowsWithCarry(carry[ii] + line_b, sz, { |window|
+                  tot[ii] += 1u; update_freq(freqs[ii], window);
+               });
             }
          }
 
@@ -78,37 +78,49 @@ fn main () unsafe {
       }
    }
 
-   fn le_by_val<TT: copy, UU: copy>(kv0: (TT,UU), kv1: (TT,UU)) -> bool {
-      let (_, v0) = kv0;
-      let (_, v1) = kv1;
-      ret v0 >= v1;
+   // NOTE: removing *everything* below here only cuts the time from
+   // 1.1 to 0.7 secs on the small test
+
+   fn sort_and_print(mm: hashmap<[u8], uint>, total: uint) { 
+      fn pct(xx: uint, yy: uint) -> float {
+         ret (xx as float) * 100f / (yy as float);
+      }
+
+      fn le_by_val<TT: copy, UU: copy>(kv0: (TT,UU), kv1: (TT,UU)) -> bool {
+         let (_, v0) = kv0;
+         let (_, v1) = kv1;
+         ret v0 >= v1;
+      }
+
+      fn le_by_key<TT: copy, UU: copy>(kv0: (TT,UU), kv1: (TT,UU)) -> bool {
+         let (k0, _) = kv0;
+         let (k1, _) = kv1;
+         ret k0 <= k1;
+      }
+
+      fn sortKV<TT: copy, UU: copy>(orig: [(TT,UU)]) -> [(TT,UU)] {
+         ret sort::merge_sort(le_by_val, sort::merge_sort(le_by_key, orig));
+      }
+
+      let mut pairs = [];
+
+      mm.each(fn&(key: [u8], val: uint) -> bool {
+         pairs += [(key, pct(val, total))];
+         ret true;
+      });
+
+      let pairs_sorted = sortKV(pairs);
+      
+      pairs_sorted.each(fn@(kv: ([u8], float)) -> bool unsafe {
+         let (k,v) = kv;
+         io::println(#fmt["%s %0.3f", str::to_upper(str::unsafe::from_bytes(k)), v]);
+         ret true;
+      });
    }
 
-   fn le_by_key<TT: copy, UU: copy>(kv0: (TT,UU), kv1: (TT,UU)) -> bool {
-      let (k0, _) = kv0;
-      let (k1, _) = kv1;
-      ret k0 <= k1;
-   }
-
-   fn sortKV<TT: copy, UU: copy>(orig: [(TT,UU)]) -> [(TT,UU)] {
-      ret sort::merge_sort(le_by_val, sort::merge_sort(le_by_key, orig));
-   }
-
-   let mut kv1 = [];
-   let mut kv2 = [];
-
-   fn pct(xx: uint, yy: uint) -> float {
-      ret (xx as float) * 100f / (yy as float);
-   }
-   freqs[0].each(fn&(key: [u8], val: uint) -> bool { kv1 += [(key, pct(val, tot[0]))]; ret true });
-   freqs[1].each(fn&(key: [u8], val: uint) -> bool { kv2 += [(key, pct(val, tot[1]))]; ret true });
-
-   let kv1_sorted = sortKV(kv1);
-   let kv2_sorted = sortKV(kv2);
-
-   kv1_sorted.each(fn@(kv: ([u8], float)) -> bool { let (k,v) = kv; io::println(#fmt["%s %0.3f", str::to_upper(str::unsafe::from_bytes(k)), v]); ret true});
+   sort_and_print(freqs[0], tot[0]);
    io::println("");
-   kv2_sorted.each(fn@(kv: ([u8], float)) -> bool { let (k,v) = kv; io::println(#fmt["%s %0.3f", str::to_upper(str::unsafe::from_bytes(k)), v]); ret true});
+   sort_and_print(freqs[1], tot[1]);
    io::println("");
 
    fn find(mm: hashmap<[u8], uint>, key: str) -> uint {
@@ -123,6 +135,5 @@ fn main () unsafe {
    io::println(#fmt["%u\t%s", find(freqs[4], "GGTATT"), "GGTATT"]);
    io::println(#fmt["%u\t%s", find(freqs[5], "GGTATTTTAATT"), "GGTATTTTAATT"]);
    io::println(#fmt["%u\t%s", find(freqs[6], "GGTATTTTAATTTATAGT"), "GGTATTTTAATTTATAGT"]);
-      
 }
 
