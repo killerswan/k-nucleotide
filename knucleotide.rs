@@ -8,43 +8,20 @@ import std::map::hashmap;
 import std::sort;
 
 fn main () unsafe {
-   fn make_map() -> hashmap<[u8], uint> {
+   fn map() -> hashmap<[u8], uint> {
       ret map::bytes_hash();
    }
 
-   // FIXME: combine these
-   let freqs1 = make_map();
-   let freqs2 = make_map();
-   let freqs3 = make_map();
-   let freqs4 = make_map();
-   let freqs6 = make_map();
-   let freqs12 = make_map();
-   let freqs18 = make_map();
-
-   let mut carry1 = [];
-   let mut carry2 = [];
-   let mut carry3 = [];
-   let mut carry4 = [];
-   let mut carry6 = [];
-   let mut carry12 = [];
-   let mut carry18 = [];
-
-   let mut tot1 = 0u;
-   let mut tot2 = 0u;
-   let mut tot3 = 0u;
-   let mut tot4 = 0u;
-   let mut tot6 = 0u;
-   let mut tot12 = 0u;
-   let mut tot18 = 0u;
-
+   let sizes: [uint]                = [1u,2u,3u,4u,6u,12u,18u];
+   let freqs: [hashmap<[u8], uint>] = [map(),map(),map(),map(),map(),map(),map()];
+   let carry: [mut [u8]]            = [mut [],[],[],[],[],[],[],[]];
+   let tot:   [mut uint]            = [mut 0u,0u,0u,0u,0u,0u,0u,0u];
+   
    // increment one counter
    let update_freq = fn@(mm: hashmap<[u8], uint>, key: [u8]) {
-    //let KEY = key.to_upper();
-      let KEY = key;
-
-      alt mm.find(KEY) {
-         option::none      { mm.insert(KEY, 1u      ); }
-         option::some(val) { mm.insert(KEY, 1u + val); }
+      alt mm.find(key) {
+         option::none      { mm.insert(key, 1u      ); }
+         option::some(val) { mm.insert(key, 1u + val); }
       }
    };
 
@@ -57,12 +34,11 @@ fn main () unsafe {
 
       let len = vec::len(bb);
       while ii < len - (nn - 1u) {
-         it(vec::view(&bb, ii, ii+nn));
+         it(vec::slice(bb, ii, ii+nn));
          ii += 1u;
       }
 
-      let carry = vec::view(&bb, len - (nn - 1u), len); 
-      ret carry;
+      ret vec::slice(bb, len - (nn - 1u), len); 
    }
 
    let mut proc_mode = false;
@@ -88,16 +64,13 @@ fn main () unsafe {
          }
          // process the sequence for k-mers
          (_, true) {
-               let line_b = str::bytes(line);
+            let line_b = str::bytes(line);
 
-               // FIXME: combine these
-               carry1 = windowsWithCarry(carry1 + line_b, 1u, {|window| tot1 += 1u; update_freq(freqs1, window); });
-               carry2 = windowsWithCarry(carry2 + line_b, 2u, {|window| tot2 += 1u; update_freq(freqs2, window); });
-               carry3 = windowsWithCarry(carry3 + line_b, 3u, {|window| tot3 += 1u; update_freq(freqs3, window); });
-               carry4 = windowsWithCarry(carry4 + line_b, 4u, {|window| tot4 += 1u; update_freq(freqs4, window); });
-               carry6 = windowsWithCarry(carry6 + line_b, 6u, {|window| tot6 += 1u; update_freq(freqs6, window); });
-               carry12 = windowsWithCarry(carry12 + line_b, 12u, {|window| tot12 += 1u; update_freq(freqs12, window); });
-               carry18 = windowsWithCarry(carry18 + line_b, 18u, {|window| tot18 += 1u; update_freq(freqs18, window); });
+            // FIXME: combine these
+            for sizes.eachi {|ii, sz|
+               carry[ii] = windowsWithCarry(carry[ii] + line_b, sz,
+                              {|window| tot[ii] += 1u; update_freq(freqs[ii], window);});
+            }
          }
 
          // whatever
@@ -127,8 +100,8 @@ fn main () unsafe {
    fn pct(xx: uint, yy: uint) -> float {
       ret (xx as float) * 100f / (yy as float);
    }
-   freqs1.each(fn&(key: [u8], val: uint) -> bool { kv1 += [(key, pct(val, tot1))]; ret true });
-   freqs2.each(fn&(key: [u8], val: uint) -> bool { kv2 += [(key, pct(val, tot2))]; ret true });
+   freqs[0].each(fn&(key: [u8], val: uint) -> bool { kv1 += [(key, pct(val, tot[0]))]; ret true });
+   freqs[1].each(fn&(key: [u8], val: uint) -> bool { kv2 += [(key, pct(val, tot[1]))]; ret true });
 
    let kv1_sorted = sortKV(kv1);
    let kv2_sorted = sortKV(kv2);
@@ -145,11 +118,11 @@ fn main () unsafe {
       }
    }
 
-   io::println(#fmt["%u\t%s", find(freqs3, "GGT"), "GGT"]);
-   io::println(#fmt["%u\t%s", find(freqs4, "GGTA"), "GGTA"]);
-   io::println(#fmt["%u\t%s", find(freqs6, "GGTATT"), "GGTATT"]);
-   io::println(#fmt["%u\t%s", find(freqs12, "GGTATTTTAATT"), "GGTATTTTAATT"]);
-   io::println(#fmt["%u\t%s", find(freqs18, "GGTATTTTAATTTATAGT"), "GGTATTTTAATTTATAGT"]);
+   io::println(#fmt["%u\t%s", find(freqs[2], "GGT"), "GGT"]);
+   io::println(#fmt["%u\t%s", find(freqs[3], "GGTA"), "GGTA"]);
+   io::println(#fmt["%u\t%s", find(freqs[4], "GGTATT"), "GGTATT"]);
+   io::println(#fmt["%u\t%s", find(freqs[5], "GGTATTTTAATT"), "GGTATTTTAATT"]);
+   io::println(#fmt["%u\t%s", find(freqs[6], "GGTATTTTAATTTATAGT"), "GGTATTTTAATTTATAGT"]);
       
 }
 
