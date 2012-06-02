@@ -79,6 +79,7 @@ fn main () {
    }
 
 
+/*
    fn sort_and_print(mm: hashmap<[u8], uint>, total: uint) { 
       fn pct(xx: uint, yy: uint) -> float {
          ret (xx as float) * 100f / (yy as float);
@@ -133,5 +134,6 @@ fn main () {
    io::println(#fmt["%u\t%s", find(freqs[4], "GGTATT"), "GGTATT"]);
    io::println(#fmt["%u\t%s", find(freqs[5], "GGTATTTTAATT"), "GGTATTTTAATT"]);
    io::println(#fmt["%u\t%s", find(freqs[6], "GGTATTTTAATTTATAGT"), "GGTATTTTAATTTATAGT"]);
+*/
 }
 
