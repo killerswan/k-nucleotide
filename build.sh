@@ -1,0 +1,1 @@
+rustc -O knucleotide.rs
