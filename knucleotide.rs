@@ -18,18 +18,18 @@ fn main () {
    let tot:   [mut uint]            = [mut 0u,0u,0u,0u,0u,0u,0u,0u];
    
    // increment one counter
-   let update_freq = fn@(mm: hashmap<[u8], uint>, key: [u8]) {
+   //let update_freq = fn@(mm: hashmap<[u8], uint>, key: [u8]) {
+   fn update_freq(mm: hashmap<[u8], uint>, key: [u8]) {
       alt mm.find(key) {
          option::none      { mm.insert(key, 1u      ); }
          option::some(val) { mm.insert(key, 1u + val); }
       }
-   };
+   }
 
    // iterate through a window of a string,
    // i.e., for "hello" and n=4, run it("hell"), and it("ello")
    //       and return "llo"
-   fn windowsWithCarry(bb: [u8], nn: uint, it: fn(window: [u8])) -> [u8] {
-      //let bb = str::bytes(ss);
+   fn windows_with_carry(bb: [const u8], nn: uint, it: fn(window: [u8])) -> [u8] {
       let mut ii = 0u;
 
       let len = vec::len(bb);
@@ -67,7 +67,7 @@ fn main () {
             let line_b = str::bytes(line);
 
             for sizes.eachi { |ii, sz|
-               carry[ii] = windowsWithCarry(carry[ii] + line_b, sz, { |window|
+               carry[ii] = windows_with_carry(carry[ii] + line_b, sz, { |window|
                   tot[ii] += 1u; update_freq(freqs[ii], window);
                });
             }
@@ -79,7 +79,6 @@ fn main () {
    }
 
 
-/*
    fn sort_and_print(mm: hashmap<[u8], uint>, total: uint) { 
       fn pct(xx: uint, yy: uint) -> float {
          ret (xx as float) * 100f / (yy as float);
@@ -134,6 +133,5 @@ fn main () {
    io::println(#fmt["%u\t%s", find(freqs[4], "GGTATT"), "GGTATT"]);
    io::println(#fmt["%u\t%s", find(freqs[5], "GGTATTTTAATT"), "GGTATTTTAATT"]);
    io::println(#fmt["%u\t%s", find(freqs[6], "GGTATTTTAATTTATAGT"), "GGTATTTTAATTTATAGT"]);
-*/
 }
 
