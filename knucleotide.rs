@@ -67,7 +67,8 @@ fn main () {
             let line_b = str::bytes(line);
 
             for sizes.eachi { |ii, sz|
-               carry[ii] = windows_with_carry(carry[ii] + line_b, sz, { |window|
+               let mut buffer = carry[ii] + line_b;
+               carry[ii] = windows_with_carry(buffer, sz, { |window|
                   tot[ii] += 1u; update_freq(freqs[ii], window);
                });
             }
