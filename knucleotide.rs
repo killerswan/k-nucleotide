@@ -130,10 +130,9 @@ fn main () {
    let kv1_sorted = sortKV(kv1);
    let kv2_sorted = sortKV(kv2);
 
-   kv1_sorted.each(fn@(kv: (str, float)) -> bool { let (k,v) = kv; io::println(#fmt["%s %s", k, my_to_str_exact(v, 3u)]); ret true});
+   kv1_sorted.each(fn@(kv: (str, float)) -> bool { let (k,v) = kv; io::println(#fmt["%s %0.3f", k, v]); ret true});
    io::println("");
-   //kv2_sorted.each(fn@(kv: (str, float)) -> bool { let (k,v) = kv; io::println(#fmt["%s %0.3f", k, v]); ret true});
-   kv2_sorted.each(fn@(kv: (str, float)) -> bool { let (k,v) = kv; io::println(#fmt["%s %s", k, my_to_str_exact(v, 3u)]); ret true});
+   kv2_sorted.each(fn@(kv: (str, float)) -> bool { let (k,v) = kv; io::println(#fmt["%s %0.3f", k, v]); ret true});
    io::println("");
    io::println(#fmt["%u\t%s", freqs3.get("GGT"), "GGT"]);
    io::println(#fmt["%u\t%s", freqs4.get("GGTA"), "GGTA"]);
@@ -142,112 +141,4 @@ fn main () {
    io::println(#fmt["%u\t%s", freqs18.get("GGTATTTTAATTTATAGT"), "GGTATTTTAATTTATAGT"]);
       
 }
-
-
-
-// originally from float.rs
-// 
-fn my_to_str_common(num: float, digits: uint, exact: bool) -> str {
-   import float::*;
-
-    if is_NaN(num) { ret "NaN"; }
-    if num == infinity { ret "inf"; }
-    if num == neg_infinity { ret "-inf"; }
-
-    let mut (num, sign) = if num < 0.0 { (-num, "-") } else { (num, "") };
-
-    // truncated integer
-    let trunc = num as uint;
-
-    // decimal remainder
-    let mut frac = num - (trunc as float);
-
-    // stack of digits
-    let mut fractionalParts = [];
-
-    // note: this used to return right away without rounding, as "[-]num":
-    //    if (frac < epsilon && !exact) || digits == 0u { ret accum; }
-    // 
-    // but given epsilon like in f64.rs, I don't see how it did much
-    // const epsilon: f64 = 2.2204460492503131e-16_f64;
-
-    let mut ii = digits;
-    let mut epsilon_prime = 1.0 / pow_with_uint(10u, ii);
-
-    // while we still need digits
-    // build stack of digits
-    while ii > 0u && (frac >= epsilon_prime || exact) {
-        // store the next digit
-        frac *= 10.0;
-        let digit = frac as uint;
-        vec::push(fractionalParts, digit);
-
-        // calculate the next frac
-        frac -= digit as float;
-        epsilon_prime *= 10.0;
-        ii -= 1u;
-    }
-
-    let mut acc;
-    let mut racc = "";
-    let mut carry = if frac * 10.0 as uint >= 5u { 1u } else { 0u };
-
-    // turn digits into string
-    // using stack of digits
-    while vec::len(fractionalParts) > 0u {
-         let mut adjusted_digit = carry + vec::pop(fractionalParts);
-
-         if adjusted_digit == 10u { carry = 1u; adjusted_digit %= 10u } else { carry = 0u };
-
-         racc = uint::str(adjusted_digit) + racc;
-    }
-
-    // pad decimals with trailing zeroes
-    // given our precision problems this may be dead code
-    while str::len(racc) < digits && exact {
-        racc += "0"
-    }
-
-    // combine ints and decimals
-    let mut ones = uint::str(trunc + carry);
-    if racc == "" {
-       acc = ones;
-    } else {
-       acc = ones + "." + racc;
-    }
-
-    acc = sign + acc;
-   
-    ret acc;
-}
-
-// originally from float.rs
-fn my_to_str_exact(num: float, digits: uint) -> str {
-    my_to_str_common(num, digits, true)
-}
-
-#[test]
-fn rounding() {
-   // trailing zeroes should be inserted, or rather
-   // this dodgy floating point stuff should be rounded
-   assert "3.141589999" == #fmt["%9.9f", 3.14159];
-   assert "3.141589999" == float::to_str_common(3.14159, 9u, false);
-   assert "3.141590000" == my_to_str_common(3.14159, 9u, false);
-
-   assert "3.14158"     == float::to_str_common(3.14159, 5u, false);
-   assert "3.14159"     == my_to_str_common(3.14159, 5u, false);
-   
-   // this truncation should be rounded
-   assert "3.1415" == float::to_str(3.14159, 4u);
-   assert "3.1416" == my_to_str_exact(3.14159, 4u);
-   assert "3"      == my_to_str_exact(3.14159, 0u);
-   assert "17"     == my_to_str_exact(16.9, 0u);
-   assert "7.0000" == my_to_str_exact(6.99999999, 4u);
-
-   // FIXME: epsilon calc should be adjusted and we should round these accordingly
-   assert "3.14158999999999988261" == float::to_str_common(3.14159, 20u, false);
-   assert "3.14158999999999988262" == my_to_str_exact(3.14159, 20u);
-   assert "3.14158999999999988262" == my_to_str_common(3.14159, 20u, false);
-}
-
 
