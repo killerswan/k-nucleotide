@@ -78,8 +78,6 @@ fn main () {
       }
    }
 
-   // NOTE: removing *everything* below here only cuts the time from
-   // 1.1 to 0.7 secs on the small test
 
    fn sort_and_print(mm: hashmap<[u8], uint>, total: uint) { 
       fn pct(xx: uint, yy: uint) -> float {
