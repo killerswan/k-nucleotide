@@ -134,11 +134,19 @@ fn main () {
    io::println("");
    kv2_sorted.each(fn@(kv: (str, float)) -> bool { let (k,v) = kv; io::println(#fmt["%s %0.3f", k, v]); ret true});
    io::println("");
-   io::println(#fmt["%u\t%s", freqs3.get("GGT"), "GGT"]);
-   io::println(#fmt["%u\t%s", freqs4.get("GGTA"), "GGTA"]);
-   io::println(#fmt["%u\t%s", freqs6.get("GGTATT"), "GGTATT"]);
-   io::println(#fmt["%u\t%s", freqs12.get("GGTATTTTAATT"), "GGTATTTTAATT"]);
-   io::println(#fmt["%u\t%s", freqs18.get("GGTATTTTAATTTATAGT"), "GGTATTTTAATTTATAGT"]);
+
+   fn find(mm: hashmap<str, uint>, key: str) -> uint {
+      alt mm.find(key) {
+         option::none      { ret 0u; }
+         option::some(num) { ret num; }
+      }
+   }
+
+   io::println(#fmt["%u\t%s", find(freqs3, "GGT"), "GGT"]);
+   io::println(#fmt["%u\t%s", find(freqs4, "GGTA"), "GGTA"]);
+   io::println(#fmt["%u\t%s", find(freqs6, "GGTATT"), "GGTATT"]);
+   io::println(#fmt["%u\t%s", find(freqs12, "GGTATTTTAATT"), "GGTATTTTAATT"]);
+   io::println(#fmt["%u\t%s", find(freqs18, "GGTATTTTAATTTATAGT"), "GGTATTTTAATTTATAGT"]);
       
 }
 

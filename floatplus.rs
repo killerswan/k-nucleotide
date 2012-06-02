@@ -1,7 +1,7 @@
 use std;
 import float::*;
 
-#[test]
+//#[test]
 fn summary() {
    assert "3.1416"      == #fmt["%.4f", 3.14159];
    assert "3"           == #fmt["%.0f", 3.14159];
@@ -10,7 +10,7 @@ fn summary() {
    assert "3.141590000" == #fmt["%.9f", 3.14159];
 }
 
-#[test]
+//#[test]
 fn rounding() {
    // this truncation should be rounded
    assert "3.1416" == float::to_str(3.14159, 4u);
@@ -20,7 +20,7 @@ fn rounding() {
    assert "7.0000" == float::to_str_exact(6.99999999, 4u);
 }
 
-#[test]
+//#[test]
 fn issue1876() {
    // #1876
    // trailing zeroes should be inserted, or rather
@@ -30,7 +30,7 @@ fn issue1876() {
    assert "3.14159"     == float::to_str_common(3.14159, 5u, false);
 }
    
-#[test]
+//#[test]
 fn broken_issue1610() {
    // #1610
    // actually follow directions...
@@ -39,6 +39,26 @@ fn broken_issue1610() {
 }
 
 #[test]
+fn issue1610_exploration() {
+io::println(#fmt("%.2f", 1.1));
+io::println(#fmt("%.50f", 1.1));
+io::println(#fmt("%.75f", 1.1));
+io::println(#fmt("%.90f", 1.1));
+io::println(#fmt("%.99f", 1.1));
+io::println(#fmt("%.100f", 1.1));
+io::println("");
+
+/* prints
+   1.10
+   1.10000000000000008881784197001252323389053344726563
+   1.100000000000000088817841970012523233890533447265625000000000000000000000000
+   1.100000000000000088817841970012523233890533447265625000000000000000000000000000000000000000
+   1.100000000000000088817841970012523233890533447265625000000000000000000000000000000000000000000000000
+   1.1000000000
+*/
+}
+
+//#[test]
 fn broken_precision() {
    // FIXME: epsilon calc should be adjusted and we should round these accordingly sometimes, right?
    assert "3.14158999999999988262" /* FIXME */ == float::to_str_exact(3.14159, 20u);
@@ -46,5 +66,6 @@ fn broken_precision() {
 }
 
 // I believe the superficial parts of #1375 are covered now, but not the typeclass stuff
+
 
 
