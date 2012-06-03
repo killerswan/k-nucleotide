@@ -25,12 +25,14 @@ fn sort_and_print(mm: hashmap<[u8], uint>, total: uint) {
       ret k0 <= k1;
    }
 
+   // sort by key, then by value
    fn sortKV<TT: copy, UU: copy>(orig: [(TT,UU)]) -> [(TT,UU)] {
       ret sort::merge_sort(le_by_val, sort::merge_sort(le_by_key, orig));
    }
 
    let mut pairs = [];
 
+   // map -> [(k,%)]
    mm.each(fn&(key: [u8], val: uint) -> bool {
       pairs += [(key, pct(val, total))];
       ret true;
@@ -116,28 +118,19 @@ fn main () {
          (_, true) {
             let line_b = str::bytes(line);
 
-            // FIXME: this, and subroutines, is where we really spend our time
-/*
+            // FIXME: this, and subroutines, is where we really spend our time...
+            // a lot of the weight is in the larger string sizes
+            // (sz 18 takes 3x what sz 2 does)
+            // 
+            // suspected culprits: [u8] hash, concatentation, slicing
+
             for sizes.eachi { |ii, sz|
                let mut buffer = carry[ii] + line_b;
                carry[ii] = windows_with_carry(buffer, sz, { |window|
-                  tot[ii] += 1u; update_freq(freqs[ii], window);
+                  update_freq(freqs[ii], window);
+                  tot[ii] += 1u;
                });
             }
-*/
-            let mut ii = 1u;
-            let mut sz = sizes[ii];
-               let mut buffer = carry[ii] + line_b;
-               carry[ii] = windows_with_carry(buffer, sz, { |window|
-                  tot[ii] += 1u; update_freq(freqs[ii], window);
-               });
-
-            ii = 6u;
-            sz = sizes[ii];
-               let mut buffer = carry[ii] + line_b;
-               carry[ii] = windows_with_carry(buffer, sz, { |window|
-                  tot[ii] += 1u; update_freq(freqs[ii], window);
-               });
          }
 
          // whatever
@@ -145,16 +138,16 @@ fn main () {
       }
    }
 
-//   sort_and_print(freqs[0], tot[0]);
-//   io::println("");
+   sort_and_print(freqs[0], tot[0]);
+   io::println("");
 
    sort_and_print(freqs[1], tot[1]);
    io::println("");
 
-//   io::println(#fmt["%u\t%s", find(freqs[2], "GGT"), "GGT"]);
-//   io::println(#fmt["%u\t%s", find(freqs[3], "GGTA"), "GGTA"]);
-//   io::println(#fmt["%u\t%s", find(freqs[4], "GGTATT"), "GGTATT"]);
-//   io::println(#fmt["%u\t%s", find(freqs[5], "GGTATTTTAATT"), "GGTATTTTAATT"]);
+   io::println(#fmt["%u\t%s", find(freqs[2], "GGT"), "GGT"]);
+   io::println(#fmt["%u\t%s", find(freqs[3], "GGTA"), "GGTA"]);
+   io::println(#fmt["%u\t%s", find(freqs[4], "GGTATT"), "GGTATT"]);
+   io::println(#fmt["%u\t%s", find(freqs[5], "GGTATTTTAATT"), "GGTATTTTAATT"]);
    io::println(#fmt["%u\t%s", find(freqs[6], "GGTATTTTAATTTATAGT"), "GGTATTTTAATTTATAGT"]);
 }
 
