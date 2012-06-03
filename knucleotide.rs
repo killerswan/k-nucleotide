@@ -92,26 +92,20 @@ fn main () {
    // reading the sequence of interest
    let mut proc_mode = false;
 
-   // read all lines as [u8]
    let rdr = io::stdin();
-   let file = rdr.read_whole_stream();
-   let lines = vec::split(file, { |ch| ch == '\n' as u8 });
 
-   for lines.each { |line|
+   while !rdr.eof() {
+      let line: str = rdr.read_line();
 
-      if vec::len(line) == 0u { cont; }
+      if str::len(line) == 0u { cont; }
 
       alt (line[0], proc_mode) {
 
          // start processing if this is the one
          ('>' as u8, false) {
-            if line[1] == 'T' as u8 && 
-               line[2] == 'H' as u8 && 
-               line[3] == 'R' as u8 && 
-               line[4] == 'E' as u8 && 
-               line[5] == 'E' as u8 {
-
-               proc_mode = true;
+            alt str::find_str_from(line, "THREE", 1u) {
+               option::some(_) { proc_mode = true; }
+               option::none    { }
             }
          }
 
@@ -120,9 +114,11 @@ fn main () {
 
          // process the sequence for k-mers
          (_, true) {
-            // FIXME: this is where we spend our time, and functions this calls
+            let line_b = str::bytes(line);
+
+            // FIXME: this, and subroutines, is where we really spend our time
             for sizes.eachi { |ii, sz|
-               let mut buffer = carry[ii] + line;
+               let mut buffer = carry[ii] + line_b;
                carry[ii] = windows_with_carry(buffer, sz, { |window|
                   tot[ii] += 1u; update_freq(freqs[ii], window);
                });
