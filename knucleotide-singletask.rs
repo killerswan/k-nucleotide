@@ -8,7 +8,7 @@ import std::map::hashmap;
 import std::sort;
 
 // given a map, print a sorted version of it
-fn sort_and_fmt(mm: hashmap<[u8], uint>, total: uint) -> str { 
+fn sort_and_print(mm: hashmap<[u8], uint>, total: uint) { 
    fn pct(xx: uint, yy: uint) -> float {
       ret (xx as float) * 100f / (yy as float);
    }
@@ -40,15 +40,11 @@ fn sort_and_fmt(mm: hashmap<[u8], uint>, total: uint) -> str {
 
    let pairs_sorted = sortKV(pairs);
    
-   let mut buffer = "";
-
-   pairs_sorted.each(fn&(kv: ([u8], float)) -> bool unsafe {
+   pairs_sorted.each(fn@(kv: ([u8], float)) -> bool unsafe {
       let (k,v) = kv;
-      buffer += (#fmt["%s %0.3f\n", str::to_upper(str::unsafe::from_bytes(k)), v]);
+      io::println(#fmt["%s %0.3f", str::to_upper(str::unsafe::from_bytes(k)), v]);
       ret true;
    });
-
-   ret buffer;
 }
 
 // given a map, search for the frequency of a pattern
@@ -82,55 +78,17 @@ fn windows_with_carry(bb: [const u8], nn: uint, it: fn(window: [u8])) -> [u8] {
    ret vec::slice(bb, len - (nn - 1u), len); 
 }
 
-fn make_sequence_processor(sz: uint, from_parent: comm::port<[u8]>, to_parent: comm::chan<str>) {
-   
-   let freqs: hashmap<[u8], uint> = map::bytes_hash();
-   let mut carry: [u8] = [];
-   let mut total: uint = 0u;
-
-   let mut line: [u8];
-
-   loop {
-
-      line = comm::recv(from_parent);
-      if line == [] { break; }
-
-      carry = windows_with_carry(carry + line, sz, { |window|
-         update_freq(freqs, window);
-         total += 1u;
-      });
-   }
-
-   // THEN RETURN THE BUFFER TO BE PRINTED
-   // RATHER THAN PRINTING NOW, WHICH COULD BE OUT OF ORDER
-   let buffer = alt sz { 
-       1u { sort_and_fmt(freqs, total) }
-       2u { sort_and_fmt(freqs, total) }
-       3u { #fmt["%u\t%s", find(freqs, "GGT"), "GGT"] }
-       4u { #fmt["%u\t%s", find(freqs, "GGTA"), "GGTA"] }
-       6u { #fmt["%u\t%s", find(freqs, "GGTATT"), "GGTATT"] }
-      12u { #fmt["%u\t%s", find(freqs, "GGTATTTTAATT"), "GGTATTTTAATT"] }
-      18u { #fmt["%u\t%s", find(freqs, "GGTATTTTAATTTATAGT"), "GGTATTTTAATTTATAGT"] }
-        _ { "" }
-   };
-
-   //comm::send(to_parent, #fmt["yay{%u}", sz]);
-   comm::send(to_parent, buffer);
-}
 
 // given a FASTA file on stdin, process sequence THREE
 fn main () {
+   fn map() -> hashmap<[u8], uint> {
+      ret map::bytes_hash();
+   }
 
-   // initialize each sequence sorter
-   let sizes = [1u,2u,3u,4u,6u,12u,18u];
-   let from_child = vec::map (sizes, { |_sz|     comm::port() });
-   let to_parent  = vec::mapi(sizes, { |ii, _sz| comm::chan(from_child[ii]) });
-   let to_child   = vec::mapi(sizes, fn@(ii: uint, sz: uint) -> comm::chan<[u8]> {
-      ret task::spawn_listener { |from_parent|
-         make_sequence_processor(sz, from_parent, to_parent[ii]);
-      };
-   });
-         
+   let sizes: [uint]                = [1u,2u,3u,4u,6u,12u,18u];
+   let freqs: [hashmap<[u8], uint>] = [map(),map(),map(),map(),map(),map(),map()];
+   let carry: [mut [u8]]            = [mut [],[],[],[],[],[],[],[]];
+   let tot:   [mut uint]            = [mut 0u,0u,0u,0u,0u,0u,0u,0u];
    
    // latch stores true after we've started
    // reading the sequence of interest
@@ -158,11 +116,16 @@ fn main () {
 
          // process the sequence for k-mers
          (_, true) {
-            let line_bytes = str::bytes(line);
+            let line_b = str::bytes(line);
 
-            for sizes.eachi { |ii, _sz|
-               let mut lb = line_bytes;
-               comm::send(to_child[ii], lb);
+            // FIXME: we spend a lot of our time here
+            // suspected culprits: [u8] hash, concatentation, slicing
+            for sizes.eachi { |ii, sz|
+               let mut buffer = carry[ii] + line_b;
+               carry[ii] = windows_with_carry(buffer, sz, { |window|
+                  update_freq(freqs[ii], window);
+                  tot[ii] += 1u;
+               });
             }
          }
 
@@ -171,10 +134,16 @@ fn main () {
       }
    }
 
-   // now fetch and print result messages
-   for sizes.eachi { |ii, _sz|
-      comm::send(to_child[ii], []);
-      io::println(comm::recv(from_child[ii]));
-   }
+   sort_and_print(freqs[0], tot[0]);
+   io::println("");
+
+   sort_and_print(freqs[1], tot[1]);
+   io::println("");
+
+   io::println(#fmt["%u\t%s", find(freqs[2], "GGT"), "GGT"]);
+   io::println(#fmt["%u\t%s", find(freqs[3], "GGTA"), "GGTA"]);
+   io::println(#fmt["%u\t%s", find(freqs[4], "GGTATT"), "GGTATT"]);
+   io::println(#fmt["%u\t%s", find(freqs[5], "GGTATTTTAATT"), "GGTATTTTAATT"]);
+   io::println(#fmt["%u\t%s", find(freqs[6], "GGTATTTTAATTTATAGT"), "GGTATTTTAATTTATAGT"]);
 }
 

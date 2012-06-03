@@ -3,45 +3,42 @@
 Testing Rust with the [Alioth k-nucleotide benchmark](http://shootout.alioth.debian.org/u64q/performance.php?test=knucleotide)
 
 ```
-$ ./knucleotide < knucleotide-input.txt 
-A 30.279
-T 30.113
-G 19.835
-C 19.773
+$ time ./knucleotide < 250m.fasta 
+A 30.000
+T 30.000
+G 20.000
+C 20.000
 
-AA 9.161
-AT 9.138
-TA 9.108
-TT 9.060
-CA 6.014
-GA 5.996
-AG 5.993
-AC 5.988
-TG 5.987
-GT 5.967
-TC 5.958
-CT 5.948
-GG 3.944
-GC 3.928
-CG 3.910
-CC 3.899
+AA 9.002
+TA 9.001
+TT 8.999
+AT 8.998
+GT 6.004
+AG 6.000
+AC 6.000
+TC 6.000
+GA 6.000
+TG 6.000
+CA 5.998
+CT 5.998
+CC 4.002
+CG 4.002
+GG 3.999
+GC 3.997
 
-1474	GGT
-459	GGTA
-49	GGTATT
-1	GGTATTTTAATT
-1	GGTATTTTAATTTATAGT
+1503927	GGT
+454564	GGTA
+45547	GGTATT
+893	GGTATTTTAATT
+893	GGTATTTTAATTTATAGT
+
+real	2m15.612s
+user	12m44.788s
+sys	0m1.796s
 ```
 
-```
-$ time diff -u knucleotide-output.txt <(./knucleotide < knucleotide-input.txt)
+On a ~240 MB FASTA file input, the multi-tasking version runs in ~140 seconds.
+This is using about 1 thread per core...  Of course, on my 8-CPU system
+the C++ version runs in about 2.3 seconds. :P
 
-real	0m0.682s
-user	0m0.644s
-sys	0m0.032s
-```
-
-Note that right now the algorithm is single threaded, and
-for the larger sets of FASTA data weighs in at around **6m 55s**.
-Lots of room for improvement, here...
 
