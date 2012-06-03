@@ -117,12 +117,27 @@ fn main () {
             let line_b = str::bytes(line);
 
             // FIXME: this, and subroutines, is where we really spend our time
+/*
             for sizes.eachi { |ii, sz|
                let mut buffer = carry[ii] + line_b;
                carry[ii] = windows_with_carry(buffer, sz, { |window|
                   tot[ii] += 1u; update_freq(freqs[ii], window);
                });
             }
+*/
+            let mut ii = 1u;
+            let mut sz = sizes[ii];
+               let mut buffer = carry[ii] + line_b;
+               carry[ii] = windows_with_carry(buffer, sz, { |window|
+                  tot[ii] += 1u; update_freq(freqs[ii], window);
+               });
+
+            ii = 6u;
+            sz = sizes[ii];
+               let mut buffer = carry[ii] + line_b;
+               carry[ii] = windows_with_carry(buffer, sz, { |window|
+                  tot[ii] += 1u; update_freq(freqs[ii], window);
+               });
          }
 
          // whatever
@@ -130,16 +145,16 @@ fn main () {
       }
    }
 
-   sort_and_print(freqs[0], tot[0]);
-   io::println("");
+//   sort_and_print(freqs[0], tot[0]);
+//   io::println("");
 
    sort_and_print(freqs[1], tot[1]);
    io::println("");
 
-   io::println(#fmt["%u\t%s", find(freqs[2], "GGT"), "GGT"]);
-   io::println(#fmt["%u\t%s", find(freqs[3], "GGTA"), "GGTA"]);
-   io::println(#fmt["%u\t%s", find(freqs[4], "GGTATT"), "GGTATT"]);
-   io::println(#fmt["%u\t%s", find(freqs[5], "GGTATTTTAATT"), "GGTATTTTAATT"]);
+//   io::println(#fmt["%u\t%s", find(freqs[2], "GGT"), "GGT"]);
+//   io::println(#fmt["%u\t%s", find(freqs[3], "GGTA"), "GGTA"]);
+//   io::println(#fmt["%u\t%s", find(freqs[4], "GGTATT"), "GGTATT"]);
+//   io::println(#fmt["%u\t%s", find(freqs[5], "GGTATTTTAATT"), "GGTATTTTAATT"]);
    io::println(#fmt["%u\t%s", find(freqs[6], "GGTATTTTAATTTATAGT"), "GGTATTTTAATTTATAGT"]);
 }
 
