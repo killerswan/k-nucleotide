@@ -118,12 +118,8 @@ fn main () {
          (_, true) {
             let line_b = str::bytes(line);
 
-            // FIXME: this, and subroutines, is where we really spend our time...
-            // a lot of the weight is in the larger string sizes
-            // (sz 18 takes 3x what sz 2 does)
-            // 
+            // FIXME: we spend a lot of our time here
             // suspected culprits: [u8] hash, concatentation, slicing
-
             for sizes.eachi { |ii, sz|
                let mut buffer = carry[ii] + line_b;
                carry[ii] = windows_with_carry(buffer, sz, { |window|
