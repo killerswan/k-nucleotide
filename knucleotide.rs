@@ -101,8 +101,6 @@ fn make_sequence_processor(sz: uint, from_parent: comm::port<[u8]>, to_parent: c
       });
    }
 
-   // THEN RETURN THE BUFFER TO BE PRINTED
-   // RATHER THAN PRINTING NOW, WHICH COULD BE OUT OF ORDER
    let buffer = alt sz { 
        1u { sort_and_fmt(freqs, total) }
        2u { sort_and_fmt(freqs, total) }

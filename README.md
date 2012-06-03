@@ -39,6 +39,6 @@ sys	0m1.796s
 
 On a ~240 MB FASTA file input, the multi-tasking version runs in ~140 seconds.
 This is using about 1 thread per core...  Of course, on my 8-CPU system
-the C++ version runs in about 2.3 seconds. :P
+the F# version runs in ~60 seconds and C++ in ~2.3. :P
 
 
