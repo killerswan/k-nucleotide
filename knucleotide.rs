@@ -8,7 +8,7 @@ import std::map::hashmap;
 import std::sort;
 
 // given a map, print a sorted version of it
-fn sort_and_fmt(mm: hashmap<[u8], uint>, total: uint) -> str { 
+fn sort_and_fmt(mm: hashmap<[u8]/&, uint>, total: uint) -> str { 
    fn pct(xx: uint, yy: uint) -> float {
       ret (xx as float) * 100f / (yy as float);
    }
@@ -33,7 +33,7 @@ fn sort_and_fmt(mm: hashmap<[u8], uint>, total: uint) -> str {
    let mut pairs = [];
 
    // map -> [(k,%)]
-   mm.each(fn&(key: [u8], val: uint) -> bool {
+   mm.each(fn&(key: [u8]/&, val: uint) -> bool {
       pairs += [(key, pct(val, total))];
       ret true;
    });
@@ -42,9 +42,10 @@ fn sort_and_fmt(mm: hashmap<[u8], uint>, total: uint) -> str {
    
    let mut buffer = "";
 
-   pairs_sorted.each(fn&(kv: ([u8], float)) -> bool unsafe {
+   pairs_sorted.each(fn&(kv: ([u8]/&, float)) -> bool unsafe {
       let (k,v) = kv;
-      buffer += (#fmt["%s %0.3f\n", str::to_upper(str::unsafe::from_bytes(k)), v]);
+      let kx = vec::slice(k,0u,vec::len(k));
+      buffer += (#fmt["%s %0.3f\n", str::to_upper(str::unsafe::from_bytes(kx)), v]);
       ret true;
    });
 
@@ -52,15 +53,16 @@ fn sort_and_fmt(mm: hashmap<[u8], uint>, total: uint) -> str {
 }
 
 // given a map, search for the frequency of a pattern
-fn find(mm: hashmap<[u8], uint>, key: str) -> uint {
-   alt mm.find(str::bytes(str::to_lower(key))) {
+fn find(mm: hashmap<[u8]/&, uint>, key: str) -> uint {
+   let keyv = str::bytes(key);  // to lower?
+   alt mm.find(vec::view(keyv, 0u, vec::len(keyv))) {
       option::none      { ret 0u; }
       option::some(num) { ret num; }
    }
 }
 
 // given a map, increment the counter for a key
-fn update_freq(mm: hashmap<[u8], uint>, key: [u8]) {
+fn update_freq(mm: hashmap<[u8]/&, uint>, key: [u8]/&) {
    alt mm.find(key) {
       option::none      { mm.insert(key, 1u      ); }
       option::some(val) { mm.insert(key, 1u + val); }
@@ -70,12 +72,12 @@ fn update_freq(mm: hashmap<[u8], uint>, key: [u8]) {
 // given a [u8], for each window call a function
 // i.e., for "hello" and windows of size four,
 // run it("hell") and it("ello"), then return "llo"
-fn windows_with_carry(bb: [const u8], nn: uint, it: fn(window: [u8])) -> [u8] {
+fn windows_with_carry(bb: [const u8], nn: uint, it: fn(window: [u8]/&)) -> [u8] {
    let mut ii = 0u;
 
    let len = vec::len(bb);
    while ii < len - (nn - 1u) {
-      it(vec::slice(bb, ii, ii+nn));
+      it(vec::view(bb, ii, ii+nn));
       ii += 1u;
    }
 
@@ -84,7 +86,7 @@ fn windows_with_carry(bb: [const u8], nn: uint, it: fn(window: [u8])) -> [u8] {
 
 fn make_sequence_processor(sz: uint, from_parent: comm::port<[u8]>, to_parent: comm::chan<str>) {
    
-   let freqs: hashmap<[u8], uint> = map::bytes_hash();
+   let freqs: hashmap<[u8]/&, uint> = map::bytes_view_hash();
    let mut carry: [u8] = [];
    let mut total: uint = 0u;
 
