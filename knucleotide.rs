@@ -61,10 +61,8 @@ fn find(mm: hashmap<[u8], uint>, key: str) -> uint {
 
 // given a map, increment the counter for a key
 fn update_freq(mm: hashmap<[u8], uint>, key: [u8]) {
-   alt mm.find(key) {
-      option::none      { mm.insert(key, 1u      ); }
-      option::some(val) { mm.insert(key, 1u + val); }
-   }
+   fn add(k:[u8], v:uint, oldv:uint) -> uint { ret v + oldv; };
+   mm.insert_with_key(add, key, 1u);
 }
 
 // given a [u8], for each window call a function
