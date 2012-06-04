@@ -180,3 +180,20 @@ fn main () {
    }
 }
 
+#[test]
+fn test_hashmap_with_view_key() {
+   let mm: hashmap<[u8]/&, uint> = map::bytes_view_hash();
+   let vw = vec::view([1u8,7u8,23u8,23u8,13u8,20u8,2u8], 0u, 4u);
+   mm.insert(vw, 1u);
+
+/*
+   This leads to the following:
+```
+$ rustt knucleotide.rs 
+rustc: /code/rust/src/llvm/lib/VMCore/Instructions.cpp:274: void llvm::CallInst::init(llvm::Value*, llvm::ArrayRef<llvm::Value*>, const llvm::Twine&): Assertion `(i >= FTy->getNumParams() || FTy->getParamType(i) == Args[i]->getType()) && "Calling a function with a bad signature!"' failed.
+/home/kevin/.cargo/bin/rustt: line 28:  1314 Aborted                 (core dumped) rustc -L . --test -o "$TORUN" "$SOURCE"
+```
+
+*/
+}
+
