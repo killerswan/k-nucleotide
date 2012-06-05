@@ -6,6 +6,8 @@ use std;
 import std::map;
 import std::map::hashmap;
 import std::sort;
+import std::arc;
+import std::arc::arc;
 
 // given a map, print a sorted version of it
 fn sort_and_fmt(mm: hashmap<[u8], uint>, total: uint) -> str { 
@@ -82,23 +84,22 @@ fn windows_with_carry(bb: [const u8], nn: uint, it: fn(window: [u8])) -> [u8] {
    ret vec::slice(bb, len - (nn - 1u), len); 
 }
 
-fn make_sequence_processor(sz: uint, from_parent: comm::port<[u8]>, to_parent: comm::chan<str>) {
+fn make_sequence_processor(sz: uint, from_parent: comm::port<arc<[[u8]]>>, to_parent: comm::chan<str>) {
    
    let freqs: hashmap<[u8], uint> = map::bytes_hash();
    let mut carry: [u8] = [];
    let mut total: uint = 0u;
 
-   let mut line: [u8];
+   let lines_arc = comm::recv(from_parent);
+   let lines: [[u8]] = *arc::get::<[[u8]]>(&lines_arc);
 
-   loop {
-
-      line = comm::recv(from_parent);
-      if line == [] { break; }
-
-      carry = windows_with_carry(carry + line, sz, { |window|
-         update_freq(freqs, window);
-         total += 1u;
-      });
+   for lines.each { |line|
+      if vec::len(line) != 0u {
+         carry = windows_with_carry(carry + line, sz, { |window|
+            update_freq(freqs, window);
+            total += 1u;
+         });
+      }
    }
 
    let buffer = alt sz { 
@@ -123,7 +124,7 @@ fn main () {
    let sizes = [1u,2u,3u,4u,6u,12u,18u];
    let from_child = vec::map (sizes, { |_sz|     comm::port() });
    let to_parent  = vec::mapi(sizes, { |ii, _sz| comm::chan(from_child[ii]) });
-   let to_child   = vec::mapi(sizes, fn@(ii: uint, sz: uint) -> comm::chan<[u8]> {
+   let to_child   = vec::mapi(sizes, fn@(ii: uint, sz: uint) -> comm::chan<arc<[[u8]]>> {
       ret task::spawn_listener { |from_parent|
          make_sequence_processor(sz, from_parent, to_parent[ii]);
       };
@@ -135,33 +136,35 @@ fn main () {
    let mut proc_mode = false;
 
    let rdr = io::stdin();
+   let file = rdr.read_whole_stream();
+   let lines = vec::split(file, { |c| c == '\n' as u8 });
 
-   while !rdr.eof() {
-      let line: str = rdr.read_line();
+   let mut data_start = 0u;
+   let mut data_end   = 0u;
 
-      if str::len(line) == 0u { cont; }
+   for lines.eachi { |jj, line|
+      if vec::len(line) == 0u { cont; }
 
       alt (line[0], proc_mode) {
 
          // start processing if this is the one
          ('>' as u8, false) {
-            alt str::find_str_from(line, "THREE", 1u) {
-               option::some(_) { proc_mode = true; }
-               option::none    { }
+            if vec::len(line) >= 6u  &&
+               line[1] == 'T' as u8 &&
+               line[2] == 'H' as u8 &&
+               line[3] == 'R' as u8 &&
+               line[4] == 'E' as u8 &&
+               line[5] == 'E' as u8
+            {
+               proc_mode = true;
+               data_start = jj + 1u;
             }
          }
 
          // break our processing
-         ('>' as u8, true) { break; }
-
-         // process the sequence for k-mers
-         (_, true) {
-            let line_bytes = str::bytes(line);
-
-            for sizes.eachi { |ii, _sz|
-               let mut lb = line_bytes;
-               comm::send(to_child[ii], lb);
-            }
+         ('>' as u8, true) {
+            data_end = jj;
+            break;
          }
 
          // whatever
@@ -169,9 +172,16 @@ fn main () {
       }
    }
 
-   // finish...
+   // in case we didn't find an 'end', but went through all the lines
+   if proc_mode == true || data_end == 0u { data_end = vec::len(lines); }
+
+   // grab the relevant FASTA sequence as an ARC reference
+   let sequence = vec::slice(lines, data_start, data_end);
+   let sequence_arc = arc::arc(sequence);
+
+   // send the the reference (or rather a clone of it) to each child
    for sizes.eachi { |ii, _sz|
-      comm::send(to_child[ii], []);
+      comm::send(to_child[ii], arc::clone(&sequence_arc));
    }
 
    // now fetch and print result messages
