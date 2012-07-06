@@ -1,1 +1,1 @@
-rustc -O knucleotide.rs
+rustc -O shootout-k-nucleotide.rs
