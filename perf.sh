@@ -1,3 +1,3 @@
-rustc -g knucleotide.rs
-valgrind --tool=callgrind ./knucleotide < knucleotide-input.txt
+rustc -g shootout-k-nucleotide.rs
+valgrind --tool=callgrind ./shootout-k-nucleotide < knucleotide-input.txt
 kcachegrind callgrind*
